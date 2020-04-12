@@ -2,10 +2,52 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
+
+    <style>
+      #field {
+        display: flex;
+        flex-direction: row;
+      }
+
+      #opponent-hands {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .player {
+        display: flex;
+        flex-direction: row;
+      }
+
+      #my-hand {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .card {
+        margin: 10px;
+        height: 100px;
+        width: 60px;
+        background: black;
+        color: white;
+        font-size: 50px;
+        border-radius: 3px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+
   </head>
   <body>
-    <button id='main-button-room-create'>room create</button>
-    <ul id='main-ul-room-list'></ul>
+    <button id='game-start'>game start</button>
+    <h3>Field</h3>
+    <div id='field'></div>
+    <h3>OtherHands</h3>
+    <div id='opponent-hands'></div>
+    <h3>MyHand</h3>
+    <div id='my-hand'></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src='./main.js'></script>
