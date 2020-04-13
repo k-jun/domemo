@@ -11,15 +11,27 @@
 
       #opponent-hands {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
       }
 
-      .player {
+      #my-hand {
         display: flex;
         flex-direction: row;
       }
 
-      #my-hand {
+      #top-menu {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .player-hand {
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+      }
+
+      .hand {
         display: flex;
         flex-direction: row;
       }
@@ -36,12 +48,21 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        cursor: pointer;
+      }
+
+      .red {
+        color: red;
       }
     </style>
 
   </head>
   <body>
-    <button id='game-start'>game start</button>
+    <div id='top-menu'>
+      <button id='game-start'>game start</button>
+      <input id='name-input' placeholder='nickname' />
+    </div>
+    <div id='status'></div>
     <h3>Field</h3>
     <div id='field'></div>
     <h3>OtherHands</h3>
