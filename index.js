@@ -68,6 +68,10 @@ function update_board() {
     }
     hands[i] = []
     hands_status[i] = []
+    // var names = []
+    // for (var j = 0; i < room.names.length; i++) {
+    //   names.push(`${j + 1}. ${room.names[j]}`)
+    // }
 
     room.members[i].emit(
       'updated',
