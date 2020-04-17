@@ -15,7 +15,7 @@ module.exports = class Room {
   join(socket) {
     if (this.members.length < max_member_num) {
       this.members.push(socket)
-      this.names.push(`player ${this.members.length}`)
+      this.names.push(`anonymous`)
     } else {
       this.viewers.push(socket)
     }
