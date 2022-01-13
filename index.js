@@ -1,99 +1,75 @@
-var app = require('express')();
-var http = require('http').createServer(app);
-var io = require('socket.io')(http);
-var Room = require('./room.js');
 
-var room = new Room();
+var current_room_id = 0;
+var socket = io();
+var room_list = [];
 
-app.get('/', function(req, res) {
-  res.sendFile(__dirname + '/index.html');
-});
-
-app.get('/main.js', function(req, res) {
-  res.sendFile(__dirname + '/main.js');
-});
-
-io.on('connection', function(socket) {
-  room.join(socket);
-  update_status();
-
-  socket.on('start', function() {
-    room.start();
-    update_board()
+function init() {
+  // event listener
+  document.getElementById('game-start').addEventListener('click', function (e) {
+    e.preventDefault();
+    socket.emit('start', {})
   })
 
-  socket.on('name_update', function(newName) {
-    room.name_update(socket, newName)
-    update_board();
-    update_status();
+  document.getElementById('name-input').addEventListener('change', function (e) {
+    e.preventDefault();
+    socket.emit('name_update', e.target.value)
   })
-
-
-  socket.on('push-down', function(payload) {
-    room.pushDown(payload.playerIdx, payload.cardIdx)
-    update_board()
-  })
-
-  socket.on('disconnect', function() {
-    room.leave(socket);
-    update_status();
-  }) });
-
-
-function update_status() {
-  for (var i = 0; i < room.members.length; i++) {
-    room.members[i].emit('update_status', { 'status': `current members: ${room.members.length}, current viewers: ${room.viewers.length}, you are: player ${i + 1} your name is: ${room.names[i]}` })
-  }
-
-  for (var i = 0; i < room.viewers.length; i++) {
-    room.viewers[i].emit('update_status', { 'status': `current members: ${room.members.length}, current viewers: ${room.viewers.length}, you are viewer: ${i + 1}` })
-  }
-
 }
 
-function update_board() {
-  for (var i = 0; i < room.members.length; i++) {
-    var hands = Array.from(room.hands)
-    var hands_status = Array.from(room.hands_status)
-    var my_hand = []
-    if (room.hands.length > i) {
-      for (var j = 0; j < room.hands[i].length; j++) {
-        if (room.hands_status[i][j]) {
-          my_hand.push(room.hands[i][j])
-        } else {
-          my_hand.push(' ')
-        }
-      }
+socket.on('update_status', function (payload) {
+  console.log(payload)
+  document.getElementById('status').innerText = payload.status
+})
+
+socket.on('updated', function (payload) {
+
+  var opponent_hands_status = payload.opponent_hands_status
+  var opponent_hands = payload.opponent_hands
+  var names = payload.names
+
+  var el_opponent_hands = document.getElementById('opponent-hands')
+  var html_opponent_hands = ''
+  for (var i = 0; i < opponent_hands.length; i++) {
+    if (opponent_hands[i].length == 0) {
+      continue
     }
-    hands[i] = []
-    hands_status[i] = []
 
-    room.members[i].emit(
-      'updated',
-      {
-        field: room.field,
-        opponent_hands: hands,
-        opponent_hands_status: hands_status,
-        my_hand: my_hand,
-        names: room.names
-      })
+    var html_player = `<div class='player-hand'><h4>${names[i]}</h4>`
+    html_player += `<div class='hand'>`
+    for (var j = 0; j < opponent_hands[i].length; j++) {
+      html_player += `<div class='card opponent-card ${opponent_hands_status[i][j] && 'red'}' playerIdx='${i}' cardIdx='${j}'>${opponent_hands[i][j]}</div>`
+    }
+    html_player += '</div></div>'
+    html_opponent_hands += html_player
   }
 
-
-  for (var i = 0; i < room.viewers.length; i++) {
-    room.viewers[i].emit(
-      'updated',
-      {
-        field: room.field,
-        opponent_hands: room.hands,
-        opponent_hands_status: room.hands_status,
-        my_hand: [],
-        names: room.names
-      }
-    )
+  var field = payload.field
+  var el_field = document.getElementById('field')
+  var html_field = ''
+  for (var i = 0; i < field.length; i++) {
+    html_field += `<div class='card'>${field[i]}</div>`
   }
-}
 
-http.listen(3000, function() {
-  console.log('listening on *:3000');
-});
+  var my_hand = payload.my_hand
+  var el_my_hand = document.getElementById('my-hand')
+  var html_my_hand = ''
+  for (var i = 0; i < my_hand.length; i++) {
+    html_my_hand += `<div class='card red'>${my_hand[i]}</div>`
+  }
+
+  el_field.innerHTML = html_field
+  el_opponent_hands.innerHTML = html_opponent_hands
+  el_my_hand.innerHTML = html_my_hand
+
+
+  var el_list = document.getElementsByClassName('opponent-card')
+  for (var i = 0; i < el_list.length; i++) {
+    el_list[i].addEventListener('click', function (e) {
+      var playerIdx = e.target.getAttribute('playerIdx')
+      var cardIdx = e.target.getAttribute('cardIdx')
+      socket.emit('push-down', { playerIdx: playerIdx, cardIdx: cardIdx })
+    })
+  }
+})
+
+init()
